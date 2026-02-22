@@ -1,4 +1,5 @@
 const Product = require("../../../models/productModel");
+const fs = require("fs");
 
 exports.createProduct = async (req, res) => {
   const file = req.file;
@@ -34,7 +35,7 @@ exports.createProduct = async (req, res) => {
     productStatus,
     productPrice,
     productStockQty,
-    productImage: "http://localhost:3000/" + filePath,
+    productImage: process.env.BACKEND_URL + filePath,
   });
   res.status(201).json({
     message: "Product created successfully",
@@ -42,34 +43,92 @@ exports.createProduct = async (req, res) => {
   });
 };
 
-exports.getProducts = async (req, res) => {
-  const products = await Product.find();
-  if (products.length == 0) {
-    return res.status(404).json({
-      message: "No product found",
+exports.updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const {
+    productName,
+    productDescription,
+    productStatus,
+    productStockQty,
+    productPrice,
+  } = req.body;
+  if (
+    !productName ||
+    !productDescription ||
+    !productStatus ||
+    !productPrice ||
+    !productStockQty
+  ) {
+    return res.status(400).json({
+      message:
+        "Please provide productName,productDescription,productStatus,productPrice,id and productStockQty",
     });
   }
-  res.status(200).json({
-    message: "Product fetched successfully",
-    data: products,
+  const oldData = await Product.findById(id);
+  if (!oldData) {
+    return res.status(404).json({
+      message: "No Product found with that Id",
+    });
+  }
+  const oldProductImage = oldData.productImage;
+  const lengthToCut = process.env.BACKEND_URL.length;
+  const finalLength = oldProductImage.slice(lengthToCut);
+  if (req.file && req.file.filename) {
+    fs.unlink("./uploads/" + finalLength, (err) => {
+      if (err) {
+        console.log(err.message);
+      } else {
+        console.log("file deleted successfully");
+      }
+    });
+  }
+  const product = await Product.findByIdAndUpdate(
+    id,
+    {
+      productName,
+      productDescription,
+      productStatus,
+      productPrice,
+      productStockQty,
+      productImage:
+        req.file && req.file.filename
+          ? process.env.BACKEND_URL + req.file.filename
+          : oldProductImage,
+    },
+    {
+      new: true,
+    },
+  );
+  res.status(201).json({
+    message: "Product updated successfully",
+    data: product,
   });
 };
-
-exports.getProduct = async (req, res) => {
+exports.deleteProduct = async (req, res) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({
       message: "Please provide id",
     });
   }
-  const product = await Product.findById(id);
-  if (!product) {
-    return res.status(404).json({
-      message: "No product found",
+  const oldData = await Product.findById(id);
+  if (!oldData) {
+    return res.status(400).json({
+      message: "No product found with that Id",
     });
   }
+  const oldImage = oldData.productImage;
+  const lengthToCut = process.env.BACKEND_URL.length;
+  const finalPath = oldImage.slice(lengthToCut);
+  fs.unlink("./uploads/" + finalPath, (err) => {
+    if (err) {
+      console.log("Error deleting file", err);
+    } else {
+      console.log("File deleted successfully");
+    }
+  });
+  await Product.findByIdAndDelete(id);
   res.status(200).json({
-    message: "Product fetched successfully",
-    data: product,
+    message: "Product deleted successfully",
   });
 };

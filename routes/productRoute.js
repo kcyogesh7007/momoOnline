@@ -1,8 +1,13 @@
 const {
   createProduct,
-  getProducts,
-  getProduct,
+
+  updateProduct,
+  deleteProduct,
 } = require("../controller/admin/product/productController");
+const {
+  getProduct,
+  getProducts,
+} = require("../controller/global/globalController");
 const isAuthenticated = require("../middleware/isAuthenticated");
 const isRestrictTo = require("../middleware/isRestrictTo");
 const upload = require("../middleware/multerConfig");
@@ -16,10 +21,19 @@ router
     isAuthenticated,
     isRestrictTo("admin"),
     upload.single("productImage"),
-    createProduct,
+    catchAsync(createProduct),
   )
   .get(isAuthenticated, catchAsync(getProducts));
 
-router.route("/products/:id").get(isAuthenticated, catchAsync(getProduct));
+router
+  .route("/products/:id")
+  .get(isAuthenticated, catchAsync(getProduct))
+  .patch(
+    isAuthenticated,
+    isRestrictTo("admin"),
+    upload.single("productImage"),
+    catchAsync(updateProduct),
+  )
+  .delete(isAuthenticated, isRestrictTo("admin"), catchAsync(deleteProduct));
 
 module.exports = router;

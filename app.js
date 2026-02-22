@@ -11,9 +11,15 @@ app.use(express.static("uploads"));
 
 const authRoute = require("./routes/authRoute");
 const productRoute = require("./routes/productRoute");
+const adminUserRoute = require("./routes/adminUserRoute");
+const reviewRoute = require("./routes/reviewRoute");
+const profileRoute = require("./routes/profileRoute");
 
 app.use("/api", authRoute);
 app.use("/api", productRoute);
+app.use("/api", adminUserRoute);
+app.use("/api", reviewRoute);
+app.use("/api/profile", profileRoute);
 
 const PORT = process.env.PORT || 3000;
 
