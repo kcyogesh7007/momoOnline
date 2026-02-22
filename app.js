@@ -7,6 +7,8 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(express.static("uploads"));
+
 const authRoute = require("./routes/authRoute");
 const productRoute = require("./routes/productRoute");
 
