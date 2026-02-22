@@ -8,8 +8,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const authRoute = require("./routes/authRoute");
+const productRoute = require("./routes/productRoute");
 
-app.use("", authRoute);
+app.use("/api", authRoute);
+app.use("/api", productRoute);
 
 const PORT = process.env.PORT || 3000;
 
